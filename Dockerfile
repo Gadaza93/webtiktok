@@ -1,13 +1,12 @@
-FROM node:20-bullseye-slim
+FROM node:20-bookworm-slim
 
-# Instalar dependencias del sistema: Python3 (para yt-dlp) y FFmpeg
+# Instalar dependencias esenciales del sistema sin paquetes innecesarios
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 \
-    python3-pip \
     ffmpeg \
-    curl \
     ca-certificates \
-    && rm -rf /var/lib/apt/lists//*
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -15,10 +14,10 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install --omit=dev
 
-# Copiar el resto del código
+# Copiar el código de la aplicación
 COPY . .
 
-# Exponer el puerto dinámico de la plataforma
+# Configurar el puerto para producción
 ENV PORT=4000
 EXPOSE 4000
 
