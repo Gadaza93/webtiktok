@@ -1,13 +1,17 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 const youtubedl = require('yt-dlp-exec');
 const ffmpeg = require('fluent-ffmpeg');
 const ffmpegPath = require('ffmpeg-static');
 
-// Configuración del binario estático de FFmpeg
-if (ffmpegPath) {
-  ffmpeg.setFfmpegPath(ffmpegPath);
+// Configuración del binario de FFmpeg (usa ffmpeg-static si existe en disco, de lo contrario binario del sistema)
+const resolvedFfmpegPath = ffmpegPath && fs.existsSync(ffmpegPath) ? ffmpegPath : 'ffmpeg';
+try {
+  ffmpeg.setFfmpegPath(resolvedFfmpegPath);
+} catch (e) {
+  console.warn('Aviso al configurar ruta de FFmpeg:', e.message);
 }
 
 const app = express();
@@ -310,7 +314,7 @@ app.get('/api/download-audio', async (req, res, next) => {
       extractAudio: true,
       audioFormat: 'mp3',
       format: 'bestaudio/best',
-      ffmpegLocation: ffmpegPath,
+      ffmpegLocation: resolvedFfmpegPath,
       noWarnings: true,
       noCheckCertificates: true,
       userAgent: MODERN_USER_AGENT,
